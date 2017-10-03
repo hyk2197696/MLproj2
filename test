@@ -1,0 +1,53 @@
+import numpy as np
+import csv
+import matplotlib.pyplot as plt
+from sklearn import linear_model
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+datafile = np.load('data.npz')
+train_X = datafile['train_X']
+train_y = datafile['train_y']
+test_X = datafile['test_X']
+print(train_X.shape)
+
+# k nn
+neigh = KNeighborsClassifier(n_neighbors=1)
+neigh.fit(train_X, train_y)
+#print(neigh.score(train_X,train_y))
+#for show pictures
+"""
+def gallery(array, ncols):
+    nindex, height, width = array.shape
+    nrows = nindex//ncols
+    result = (array.reshape((nrows, ncols, height, width))
+              .swapaxes(1,2)
+              .reshape((height*nrows, width*ncols)))
+    return result
+
+
+ncols = 10
+result = gallery(train_X.reshape((35000,64, 64))[:ncols**2], ncols)
+plt.figure(figsize=(10,10))
+plt.imshow(result, interpolation=None)
+"""
+
+#perctron
+pt = linear_model.Perceptron()
+pt.fit(train_X,train_y)
+print(pt.score(train_X, train_y))
+#predict = pt.predict(test_X)
+
+
+
+"""clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
+                    hidden_layer_sizes=(5, 2), random_state=1)
+clf.fit(train_X,train_y)
+predict = clf.predict(test_X)
+"""
+#output to csv
+#ofile =  open('sample_submission.csv', 'w')
+#fieldnames = ['Id', 'Label']
+#writer = csv.DictWriter(ofile, fieldnames=fieldnames)
+#writer.writeheader()
+#for i in range(500):
+#    writer.writerow({'Id': i + 1, 'Label': int(predict[i])})
