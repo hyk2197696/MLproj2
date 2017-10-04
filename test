@@ -4,16 +4,63 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.utils import np_utils
+from keras import backend as K
+K.set_image_dim_ordering('th')
+
 datafile = np.load('data.npz')
 train_X = datafile['train_X']
 train_y = datafile['train_y']
 test_X = datafile['test_X']
 print(train_X.shape)
 
+
+#CNN
+X_train = train_X.reshape((35000, 64, 64))
+X_test = train_X.reshape((35000, 64, 64))
+X_train = X_train.reshape(train_X.shape[0], 1, 64, 64)
+X_test = X_test.reshape(X_test.shape[0], 1, 64, 64)
+
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+X_train /= 255
+X_test /= 255
+Y_train = np_utils.to_categorical(train_y, 10)
+
+model = Sequential()
+
+model.add(Convolution2D(32, 3, 3, activation='relu', input_shape=(1,64,64)))
+
+model.add(Convolution2D(32, 3, 3, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Dropout(0.25))
+
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+model.fit(X_train, Y_train,
+          batch_size=45, nb_epoch=4, verbose=1)
+predict = model.predict(X_test)
+
 # k nn
-neigh = KNeighborsClassifier(n_neighbors=1)
+"""
+neigh = KNeighborsClassifier(n_neighbors=10)
 neigh.fit(train_X, train_y)
+predict = neigh.predict(test_X)
+#print(neigh.score(train_X, train_y))
 #print(neigh.score(train_X,train_y))
+"""
+
+
 #for show pictures
 """
 def gallery(array, ncols):
@@ -32,11 +79,11 @@ plt.imshow(result, interpolation=None)
 """
 
 #perctron
-pt = linear_model.Perceptron()
+"""pt = linear_model.Perceptron()
 pt.fit(train_X,train_y)
 print(pt.score(train_X, train_y))
 #predict = pt.predict(test_X)
-
+"""
 
 
 """clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
@@ -45,9 +92,9 @@ clf.fit(train_X,train_y)
 predict = clf.predict(test_X)
 """
 #output to csv
-#ofile =  open('sample_submission.csv', 'w')
-#fieldnames = ['Id', 'Label']
-#writer = csv.DictWriter(ofile, fieldnames=fieldnames)
-#writer.writeheader()
-#for i in range(500):
-#    writer.writerow({'Id': i + 1, 'Label': int(predict[i])})
+ofile =  open('sample_submission.csv', 'w')
+fieldnames = ['Id', 'Label']
+writer = csv.DictWriter(ofile, fieldnames=fieldnames)
+writer.writeheader()
+for i in range(500):
+    writer.writerow({'Id': i + 1, 'Label': int(predict[i])})
